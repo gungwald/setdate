@@ -39,7 +39,7 @@ IF 1 <= YEAR AND YEAR <= 99 THEN goto @enterMonth
 PRINT "MONTH (1-12) [RET FOR ";MNTH;"] ";
 INPUT "";MNTH$
 IF MNTH$ <> "" THEN MNTH = VAL(MNTH$)
-IF 1 <= MNTH AND MNTH <= 12 MNTH THEN goto @enterDay
+IF 1 <= MNTH AND MNTH <= 12 THEN goto @enterDay
 {else}
     INVERSE
     PRINT "INVALID INPUT:";
