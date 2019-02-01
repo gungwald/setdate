@@ -1,0 +1,168 @@
+REM ***********************
+REM PROGRAM: SETDATE
+REM SYSTEM:  PRODOS
+REM AUTHOR:  BILL CHATFIELD
+REM LICENSE: GPL3
+REM ***********************
+
+DEF FN ODD(X) = (X / 2 -  INT (X / 2)) > 0
+GOSUB @getDate
+IF YEAR <> 0 AND MNTH <> 0 AND DAY <> 0 THEN GOTO @printInitialDate
+{else}
+    PRINT "PLEASE ENTER THE DATE AND TIME."
+    goto @enterYear
+
+£printInitialDate
+PRINT "SYSTEM DATE: ";
+GOSUB @printDate
+
+£question
+PRINT "DO YOU WANT TO CHANGE IT? (Y/N) ";
+GET K$
+PRINT K$
+IF K$ =  "N" THEN END 
+IF K$ <> "Y" THEN GOTO @question
+
+£enterYear
+PRINT "YEAR (1-99) [RET FOR ";YEAR;"] ";
+INPUT "";YEAR$
+IF YEAR$ < > "" THEN YEAR = VAL(YEAR$)
+IF 1 <= YEAR AND YEAR <= 99 THEN goto @enterMonth
+{else}
+    INVERSE
+    PRINT "INVALID INPUT:";
+    NORMAL
+    PRINT " YEAR ";YEAR;" NOT IN RANGE."
+    GOTO @enterYear
+
+£enterMonth
+PRINT "MONTH (1-12) [RET FOR ";MNTH;"] ";
+INPUT "";MNTH$
+IF MNTH$ <> "" THEN MNTH = VAL(MNTH$)
+IF 1 <= MNTH AND MNTH <= 12 MNTH THEN goto @enterDay
+{else}
+    INVERSE
+    PRINT "INVALID INPUT:";
+    NORMAL
+    PRINT " MONTH ";MNTH;" NOT IN RANGE."
+    GOTO @enterMonth
+
+£enterDay
+PRINT "DAY (1-31) [RET FOR ";DAY;"] ";
+INPUT "";DAY$
+IF DAY$ < > "" THEN DAY = VAL(DAY$)
+IF 1 <= DAY and DAY <= 31 THEN goto @enterHour
+{else}
+    INVERSE
+    PRINT "INVALID INPUT:";
+    NORMAL
+    PRINT " DAY ";DAY;" NOT IN RANGE."
+    GOTO @enterDay
+
+£enterHour
+PRINT "HOUR (1-12) [RET FOR ";HOUR;"] ";
+INPUT "";HOUR$
+IF HOUR$ < > "" THEN HOUR = VAL(HOUR$)
+IF 1 <= HOUR AND HOUR <= 12 THEN goto @enterMinute
+{else}
+    INVERSE
+    PRINT "INVALID INPUT:";
+    NORMAL
+    PRINT " HOUR ";HOUR;" NOT IN RANGE."
+    GOTO @enterHour
+
+£enterMinute
+PRINT "MINUTE (0-59) [RET FOR ";MINUTE;"] ";
+INPUT "";MINUTE$
+IF MINUTE$ < > "" THEN MINUTE = VAL(MINUTE$)
+IF 0 <= MINUTE and MINUTE <= 59 THEN goto @enterAmPm
+{else}
+    INVERSE
+    PRINT "INVALID INPUT:";
+    NORMAL
+    PRINT " MINUTE ";MINUTE;" NOT IN RANGE."
+    GOTO @enterMinute
+
+£enterAmPm
+PRINT "AM/PM (A OR P) [RET FOR ";AMPM$;"M] ";
+INPUT "";M$
+IF M$ < > "" THEN AMPM$ = M$
+IF AMPM$ = "A" or AMPM$ = "P" or AMPM$ = "AM" or AMPM$ = "PM" THEN goto @contAmPm
+{else}
+    INVERSE
+    PRINT "INVALID INPUT:";
+    NORMAL
+    PRINT " MUST BE A OR P."
+    GOTO @enterAmPm
+
+£contAmPm
+LET AMPM$ = LEFT$(AMPM$,1)
+
+GOSUB @setDate
+
+PRINT
+PRINT "SET SYSTEM DATE: ";
+GOSUB @printDate
+END 
+
+
+£printDate
+    GOSUB @padYear
+    PRINT YEAR$;"-";
+    IF MNTH < 10 THEN PRINT "0";
+    PRINT MNTH;"-";
+    IF DAY < 10 THEN PRINT "0";
+    PRINT DAY;" ";HOUR;":";
+    IF MINUTE < 10 THEN PRINT "0";
+    PRINT MINUTE;" ";AMPM$;"M"
+    RETURN 
+
+
+£getDate
+    LET DH = PEEK(49041): REM DATE HIGH BYTE
+    LET DL = PEEK(49040): REM DATE LOW BYTE
+    LET TH = PEEK(49043): REM TIME HIGH BYTE
+    LET TL = PEEK(49042): REM TIME LOW BYTE 
+    LET YEAR = INT (DH / 2)
+    LET MNTH = FN ODD(DH) * 2 ^ 3 +  INT (DL / 32)
+    LET DAY = DL
+    IF DAY >= 128 THEN DAY = DAY - 128
+    IF DAY >= 64  THEN DAY = DAY - 64
+    IF DAY >= 32  THEN DAY = DAY - 32
+    IF TH = 0  THEN HOUR = 12      : AMPM$ = "A"
+    IF TH = 12 THEN HOUR = 12      : AMPM$ = "P"
+    IF TH > 12 THEN HOUR = TH - 12 : AMPM$ = "P"
+    IF TH < 12 THEN HOUR = TH      : AMPM$ = "A"
+    LET MINUTE = TL
+    RETURN 
+
+
+£setDate
+    { Convert to 2-digit year without modifying YEAR }
+    IF YEAR >= 100 THEN Y2 = VAL(RIGHT$(STR$(YEAR),2))
+    IF YEAR <  100 THEN Y2 = YEAR
+
+    { Set DH and DL }
+    LET DH = Y2 * 2 + (MNTH >  = 8)
+    LET DL = MNTH * 32 - 128 * (MNTH >  = 8) + DAY
+
+    { Set TH and TL }
+    IF HOUR =  12 AND AMPM$ = "A" THEN TH = 0
+    IF HOUR =  12 AND AMPM$ = "P" THEN TH = 12
+    IF HOUR <> 12 AND AMPM$ = "P" THEN TH = HOUR + 12
+    IF HOUR <> 12 AND AMPM$ = "A" THEN TH = HOUR
+    LET TL = MINUTE
+
+    { Put date/time into memory }
+    POKE 49041,DH: REM DATE HIGH BYTE
+    POKE 49040,DL: REM DATE LOW BYTE
+    POKE 49043,TH: REM TIME HIGH BYTE
+    POKE 49042,TL: REM TIME LOW BYTE
+    RETURN 
+
+
+£padYear
+    IF YEAR = 0 THEN YEAR$ = "0000": RETURN 
+    LET YEAR$ = STR$(2000 + YEAR)
+    RETURN 
+ 
