@@ -5,7 +5,8 @@ rem GPL3
 rem **************
 
 { TODO Check for 0 values after both digits entered
-  TODO Make month increment up to JAN }
+  TODO Make month increment up to JAN 
+  TODO Make days wrap according to month's number of days }
 
 section init
     let d${disk}=chr$(4)
@@ -222,7 +223,9 @@ closesection
 £dayDigitTwo
     htab 16 : vtab 9
     get k$
-    if "0" <= k$ and k$ <= "9" then print k$; : day$ = left$(day$, 1) + k$ : goto @monthCharOne
+    let first$ = left$(day$, 1)
+    if k$ = "0" and first$ = "0" then gosub @soundError : goto @dayDigitTwo
+    if "0" <= k$ and k$ <= "9" then print k$; : day$ = first$ + k$ : goto @monthCharOne
     if k$ = " "             then goto @monthCharOne
     if k$ = tb${tab}        then goto @monthCharOne
     if k$ = rt${rightArrow} then goto @monthCharOne
@@ -332,6 +335,8 @@ closesection
 £yearDigitTwo
     htab 27 : vtab 9
     get k$
+    let first = left$(year$, 1)
+    if k$ = "0" and first$ = "0" then gosub @soundError : goto @yearDigitTwo
     if "0" <= k$ and k$ <= "9" then print k$; : year$ = left$(year$, 1) + k$ : goto @hourDigitTwo
     if k$ = " "             then goto @hourDigitOne
     if k$ = tb${tab}        then goto @hourDigitOne
@@ -368,7 +373,9 @@ closesection
 £hourDigitTwo
     htab 16 : vtab 14
     get k$
-    if "0" <= k$ and k$ <= "9" then print k$; : hour$ = left$(hour$, 1) + k$ : goto @minuteDigitOne
+    let first = left$(hour$, 1)
+    if k$ = "0" and first$ = "0" then gosub @soundError : goto @hourDigitTwo
+    if "0" <= k$ and k$ <= "9" then print k$; : hour$ = first$ + k$ : goto @minuteDigitOne
     if k$ = " "             then goto @minuteDigitOne
     if k$ = tb${tab}        then goto @minuteDigitOne
     if k$ = rt${rightArrow} then goto @minuteDigitOne
@@ -404,7 +411,9 @@ closesection
 £minuteDigitTwo
     htab 21 : vtab 14
     get k$
-    if "0" <= k$ and k$ <= "9" then print k$; : minute$ = left$(minute$,1) + k$ : goto @meridiem
+    let first = left$(minute$, 1)
+    if k$ = "0" and first$ = "0" then gosub @soundError : goto @minuteDigitTwo
+    if "0" <= k$ and k$ <= "9" then print k$; : minute$ = first$ + k$ : goto @meridiem
     if k$ = " "             then goto @meridiem
     if k$ = tb${tab}        then goto @meridiem
     if k$ = rt${rightArrow} then goto @meridiem
@@ -431,8 +440,6 @@ closesection
     if k$ = "+"             then gosub @incMeridiem : print ampm$;
     if k$ = "-"             then gosub @decMeridiem : print ampm$;
     if k$ = dlt${deleteKey} then goto @minuteDigitTwo
-    if k$ = esc${escapeKey} then goto @cancel
-    if k$ = ret${returnKey} then return
     gosub @jumpKeys
     gosub @soundError
     goto @meridiem
@@ -549,6 +556,8 @@ closesection
     return
 
 £jumpKeys
+    if k$ = esc${escapeKey} then pop : goto @cancel
+    if k$ = ret${returnKey} then pop : return
     if peek(49249) <= 127 then return
     { Above peek > 127 then OpenApple is pressed. }
     if k$ = "D" then pop : goto @dayDigitOne
