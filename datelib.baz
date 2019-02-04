@@ -1,0 +1,108 @@
+£printDate
+    GOSUB @padYear
+    PRINT YEAR$;"-";
+    IF MNTH < 10 THEN PRINT "0";
+    PRINT MNTH;"-";
+    IF DAY < 10 THEN PRINT "0";
+    PRINT DAY;" ";HOUR;":";
+    IF MINUTE < 10 THEN PRINT "0";
+    PRINT MINUTE;" ";AMPM$;"M"
+    RETURN 
+
+
+# *****************************
+# Subroutine: formatDateAndTime
+# *****************************
+
+£formatDateAndTime
+    let year$ = str$(year)
+    if len(year$) = 1 then let year$ = "0" + year$
+
+    gosub @formatMonth
+
+    let day$ = str$(day)
+    if len(day$) = 1 then let day$ = "0" + day$
+
+    let hour$ = str$(hour)
+    if len(hour$) = 1 then let hour$ = "0" + hour$
+
+    let minute$ = str$(minute)
+    if len(minute$) = 1 then let minute$ = "0" + minute$
+    return
+
+£decodeMonth
+    for i = 1 to 12
+        if mnths$(i) = mnth$ then mnth = i : return
+    next
+    vtab 24
+    print
+    print "Invalid month name: " + mnth$
+    end
+
+# *****************************
+# Subroutine: decodeDateAndTime
+# *****************************
+
+£decodeDateAndTime
+    let year = val(year$)
+    gosub @decodeMonth
+    let hour = val(hour$)
+    let minute = val(minute$)
+    return
+
+# *************************
+# Subroutine: getSystemDate
+# *************************
+
+£getSystemDate
+    LET DH = PEEK(49041): REM DATE HIGH BYTE
+    LET DL = PEEK(49040): REM DATE LOW BYTE
+    LET TH = PEEK(49043): REM TIME HIGH BYTE
+    LET TL = PEEK(49042): REM TIME LOW BYTE 
+    LET YEAR = INT (DH / 2)
+    LET MNTH = ((DH/2 - INT(DH/2)) > 0) * 2 ^ 3 +  INT (DL / 32)
+    LET DAY = DL
+    IF DAY >= 128 THEN DAY = DAY - 128
+    IF DAY >= 64  THEN DAY = DAY - 64
+    IF DAY >= 32  THEN DAY = DAY - 32
+    IF TH = 0  THEN HOUR = 12      : AMPM$ = "A"
+    IF TH = 12 THEN HOUR = 12      : AMPM$ = "P"
+    IF TH > 12 THEN HOUR = TH - 12 : AMPM$ = "P"
+    IF TH < 12 THEN HOUR = TH      : AMPM$ = "A"
+    LET MINUTE = TL
+    RETURN 
+
+
+# ********************************
+# Subroutine: setSystemDateAndTime
+# ********************************
+
+£setSystemDateAndTime
+    { Convert to 2-digit year without modifying YEAR }
+    IF YEAR >= 100 THEN Y2 = VAL(RIGHT$(STR$(YEAR),2))
+    IF YEAR <  100 THEN Y2 = YEAR
+
+    { Set DH and DL }
+    LET DH = Y2 * 2 + (MNTH >  = 8)
+    LET DL = MNTH * 32 - 128 * (MNTH >  = 8) + DAY
+
+    { Set TH and TL }
+    IF HOUR =  12 AND AMPM$ = "A" THEN TH = 0
+    IF HOUR =  12 AND AMPM$ = "P" THEN TH = 12
+    IF HOUR <> 12 AND AMPM$ = "P" THEN TH = HOUR + 12
+    IF HOUR <> 12 AND AMPM$ = "A" THEN TH = HOUR
+    LET TL = MINUTE
+
+    { Put date/time into memory }
+    POKE 49041,DH: REM DATE HIGH BYTE
+    POKE 49040,DL: REM DATE LOW BYTE
+    POKE 49043,TH: REM TIME HIGH BYTE
+    POKE 49042,TL: REM TIME LOW BYTE
+    RETURN 
+
+
+£soundError
+    print beep$
+    return
+
+

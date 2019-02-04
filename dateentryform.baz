@@ -1,8 +1,9 @@
-rem **************
-rem SETDATETIME
-rem Bill Chatfield
-rem GPL3
-rem **************
+rem ***********************
+rem PROGRAM: DATEENTRYFORM
+rem SYSTEM:  PRODOS
+rem AUTHOR:  BILL CHATFIELD
+rem LICENSE: GPL3
+rem ***********************
 
 section init
     let d${disk}=chr$(4)
