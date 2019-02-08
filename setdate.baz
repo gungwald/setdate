@@ -20,6 +20,8 @@ section init
     let dlt${deleteKey}=chr$(127)
     let beep$=chr$(7)
     let tb${tab}=chr$(9)
+    let caddr{addressOfNameOfProgramToChain}=32768 {$8000}
+    let cpgm${nameOfProgramToChain}=""
     dim mnths$(12), mdays(12)
     for i = 1 to 12
         read mnths$(i), mdays(i)
@@ -38,21 +40,21 @@ section init
     data DEC,31
 closesection
 
-# ************
-# Main Program
-# ************
-
 section main
     gosub @getSystemDate
     gosub @formatDateAndTime
     gosub @drawScreen
     gosub @enterDateAndTime
+
+    VTAB TY : POKE 36,38 : PRINT : PRINT
+    if k$ <> ret$ then print "Cancelled setting of date and time." : goto @skipSettingDateTime
+
     gosub @decodeDateAndTime
     gosub @setSystemDateAndTime
-    vtab ty : poke 36,38 : print
-    print
-    if k$ =  ret$ then print "Successfully set system date and time."
-    if k$ <> ret$ then print "Cancelled setting of date and time."
+    print "Successfully set system date and time."
+
+    £skipSettingDateTime
+    gosub @chain
     end
 closesection
 
@@ -72,7 +74,8 @@ closesection
 £displayHelp
     vtab ty : poke 36,38 : print
     PRINT
-    PRINT "*** HELP ***"
+    PRINT "______________________________________"
+    PRINT "________________ HELP ________________"
     PRINT "RETURN - SET DATA & TIME"
     PRINT "ESC    - EXIT WITHOUT MAKING CHANGES"
     PRINT "TAB    - SKIP TO NEXT ELEMENT"
@@ -519,3 +522,17 @@ closesection
     if ampm$ = "P" then ampm$ = "A"
     return
 
+£chain
+    let lngth = peek(caddr)
+    let cpgm$ = ""
+    if lngth = 0 then return
+    for i = 1 to lngth
+        let c$ + chr$(peek(caddr + i))
+        rem Check for bad character.
+        if c$ <> "/" or c$ < "0" or "z" < c$ then cpgm$ = "" : return
+        let cpgm$ = cpgm$ + c$
+    next
+
+    rem Run chained program.
+    print d$;"-";cpgm$
+    return
