@@ -1,9 +1,10 @@
-rem ***********************
-rem PROGRAM: DATEENTRYFORM
+rem ********************************************************
+rem PROGRAM: SETDATE
 rem SYSTEM:  PRODOS
 rem AUTHOR:  BILL CHATFIELD
 rem LICENSE: GPL3
-rem ***********************
+rem SOURCE:  https://github.com/gungwald/setdate/setdate.baz
+rem ********************************************************
 
 section init
     let d${disk}=chr$(4)
@@ -49,17 +50,15 @@ section main
     gosub @decodeDateAndTime
     gosub @setSystemDateAndTime
     vtab ty : poke 36,38 : print
-    if k$ = ret$ then print "Successfully set system date and time."
-    if k$ <>ret$ then print "Cancelled setting of date and time."
+    print
+    if k$ =  ret$ then print "Successfully set system date and time."
+    if k$ <> ret$ then print "Cancelled setting of date and time."
     end
 closesection
 
-
-# **********************
-# Subroutine: drawScreen
-# **********************
-
 £drawScreen
+    print "Type '?' for help."
+    print
     print "Date: ";day$;"-";mnth$;"-";year$;     "  (DD-MMM-YY)"
     print "Time: ";hour$;":";minute$;" ";ampm$;"m"
     let tx = 7 : rem Time horizontal position
@@ -73,11 +72,11 @@ closesection
 £displayHelp
     vtab ty : poke 36,38 : print
     PRINT
-    PRINT "HELP"
-    PRINT "RETURN - SET DATA & TIME TO ENTERED VALUES"
-    PRINT "ESC    - EXIT WITHOUT MAKING ANY CHAGES"
+    PRINT "*** HELP ***"
+    PRINT "RETURN - SET DATA & TIME"
+    PRINT "ESC    - EXIT WITHOUT MAKING CHANGES"
     PRINT "TAB    - SKIP TO NEXT ELEMENT"
-    PRINT "ARROWS - MOVE ONE CHARACTER IN ANY DIRECTION"
+    PRINT "ARROWS - MOVE ONE CHAR IN ANY DIRECTION"
     PRINT "SPACE  - MOVE FORWARD ONE CHARACTER"
     PRINT "DELETE - MOVE BACK ONE CHARACTER"
     PRINT "+      - INCREMENT CURRENT VALUE"
@@ -87,15 +86,9 @@ closesection
     GOSUB @drawScreen
     RETURN
 
-
 £formatMonth
     let mnth$ = mnths$(mnth)
     return
-
-
-# *****************************
-# Subroutine: formatDateAndTime
-# *****************************
 
 £formatDateAndTime
     let year$ = str$(year)
@@ -122,20 +115,12 @@ closesection
     print "Invalid month name: " + mnth$
     end
 
-# *****************************
-# Subroutine: decodeDateAndTime
-# *****************************
-
 £decodeDateAndTime
     let year = val(year$)
     gosub @decodeMonth
     let hour = val(hour$)
     let minute = val(minute$)
     return
-
-# *************************
-# Subroutine: getSystemDate
-# *************************
 
 £getSystemDate
     LET DH = PEEK(49041): REM DATE HIGH BYTE
@@ -154,11 +139,6 @@ closesection
     IF TH < 12 THEN HOUR = TH      : AMPM$ = "A"
     LET MINUTE = TL
     RETURN 
-
-
-# ********************************
-# Subroutine: setSystemDateAndTime
-# ********************************
 
 £setSystemDateAndTime
     { Convert to 2-digit year without modifying YEAR }
@@ -183,11 +163,9 @@ closesection
     POKE 49042,TL: REM TIME LOW BYTE
     RETURN 
 
-
 £soundError
     print beep$
     return
-
 
 £enterDateAndTime
 
@@ -208,7 +186,6 @@ closesection
     if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @dayDigitOne
-
 
 £dayDigitTwo
     htab dx+1 : vtab dy
@@ -258,7 +235,6 @@ closesection
     if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @monthCharOne
     gosub @soundError
     goto @monthCharOne
-
 
 £monthCharTwo
     htab dx+4 : vtab dy
