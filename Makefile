@@ -58,5 +58,5 @@ test: $(DISK)
 	#$(APPLEWIN) -s7 empty -d1 $(DISK)
 
 clean:
-	$(RM) *.o $(PGMS) $(DISK)
+	$(RM) *.o setdate.bas dateentryform.bas setdatevalues.bas $(DISK)
 
