@@ -41,8 +41,10 @@ section init
 closesection
 
 section main
+    text
     gosub @getSystemDate
     gosub @formatDateAndTime
+    gosub @displayHelp
     gosub @drawScreen
     gosub @enterDateAndTime
 
@@ -59,8 +61,6 @@ section main
 closesection
 
 £drawScreen
-    print "Type '?' for help."
-    print
     print "Date: ";day$;"-";mnth$;"-";year$;     "  (DD-MMM-YY)"
     print "Time: ";hour$;":";minute$;" ";ampm$;"m"
     let tx = 7 : rem Time horizontal position
@@ -72,10 +72,10 @@ closesection
     return
 
 £displayHelp
-    vtab ty : poke 36,38 : print
+    #vtab ty : poke 36,38 : print
+    HOME
     PRINT
-    PRINT "______________________________________"
-    PRINT "________________ HELP ________________"
+    PRINT "**************** HELP *****************"
     PRINT "RETURN - SET DATA & TIME"
     PRINT "ESC    - EXIT WITHOUT MAKING CHANGES"
     PRINT "TAB    - SKIP TO NEXT ELEMENT"
@@ -84,7 +84,7 @@ closesection
     PRINT "DELETE - MOVE BACK ONE CHARACTER"
     PRINT "+      - INCREMENT CURRENT VALUE"
     PRINT "-      - DECREMENT CURRENT VALUE"
-    PRINT "?      - DISPLAY HELP"
+    PRINT "***************************************"
     PRINT
     GOSUB @drawScreen
     RETURN
@@ -244,7 +244,8 @@ closesection
     get k$
     if k$ = mid$(mnth$, 2, 1) then goto @monthCharThree
     let first$ = left$(mnth$, 1)
-    { Only April and August can be decided by the second character.}
+    if first$ = "J" and k$ = "A" then mnth$ = "JAN" : mnth=1 : print "AN"; : goto @monthCharThree
+    if first$ = "J" and k$ = "U" then mnth$ = "JUN" : mnth=6 : print "UN"; : goto @monthCharThree
     if first$ = "A" and k$ = "P" then mnth$ = "APR" : mnth=4 : print "PR"; : goto @monthCharThree
     if first$ = "A" and k$ = "U" then mnth$ = "AUG" : mnth=8 : print "UG"; : goto @monthCharThree
     { Check movement keys }
@@ -527,7 +528,7 @@ closesection
     let cpgm$ = ""
     if lngth = 0 then return
     for i = 1 to lngth
-        let c$ + chr$(peek(caddr + i))
+        let c$ = chr$(peek(caddr + i))
         rem Check for bad character.
         if c$ <> "/" or c$ < "0" or "z" < c$ then cpgm$ = "" : return
         let cpgm$ = cpgm$ + c$

@@ -44,13 +44,10 @@ Unix2Apple2.class: Unix2Apple2.java
 setdate.bas: setdate.baz
 	$(VIRTBAS) setdate.baz remgo
 
-dateentryform.bas: setdate.baz
+dateentryform.bas: dateentryform.baz
 	$(VIRTBAS) dateentryform.baz remgo
 
-setdate.orig.bas: setdate.baz
-	$(VIRTBAS) setdate.orig.baz remgo
-
-setdatevalues.bas: setdate.baz
+setdatevalues.bas: setdatevalues.baz
 	$(VIRTBAS) setdatevalues.baz remgo
 
 test: $(DISK)
