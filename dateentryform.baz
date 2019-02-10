@@ -117,10 +117,11 @@ closesection
     normal
     return
 
-£formatMonth
+£formatMonth {mnth}
     let mnth$ = mnths$(mnth)
-    return
-
+    { Default to January if mnth is 0 and mnth$ is empty. }
+    if mnth$ = "" then let mnth$ = "JAN" : let mnth = 1
+    return {mnth$}
 
 # *****************************
 # Subroutine: formatDateAndTime
@@ -180,7 +181,7 @@ closesection
     IF TH = 0  THEN HOUR = 12      : AMPM$ = "A"
     IF TH = 12 THEN HOUR = 12      : AMPM$ = "P"
     IF TH > 12 THEN HOUR = TH - 12 : AMPM$ = "P"
-    IF TH < 12 THEN HOUR = TH      : AMPM$ = "A"
+    IF 0 < TH AND TH < 12 THEN HOUR = TH      : AMPM$ = "A"
     LET MINUTE = TL
     RETURN 
 

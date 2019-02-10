@@ -132,7 +132,7 @@ END
     IF TH = 0  THEN HOUR = 12      : AMPM$ = "A"
     IF TH = 12 THEN HOUR = 12      : AMPM$ = "P"
     IF TH > 12 THEN HOUR = TH - 12 : AMPM$ = "P"
-    IF TH < 12 THEN HOUR = TH      : AMPM$ = "A"
+    IF 0 < TH AND TH < 12 THEN HOUR = TH      : AMPM$ = "A"
     LET MINUTE = TL
     RETURN 
 
