@@ -19,6 +19,7 @@ U2A=java -cp . Unix2Apple2
 VIRTBAS=python $(HOME)/hg/virtualbasic/virtualbasic.py
 PGMS=setdate.bas dateentryform.bas setdate.orig.bas setdatevalues.bas
 SRCS=setdate.baz dateentryform.baz setdatevalues.baz
+BASE_DISK=prodos-2.0.3-boot.dsk
 
 # Extra stuff
 BASIC_AUX_TYPE=0x0801
@@ -32,7 +33,7 @@ all: $(DISK)
 
 $(DISK): $(PGMS) Unix2Apple2.class
 	$(RM) $(DISK)
-	$(AC) -pro140 $(DISK) $(DISK_VOL)
+	$(COPY) $(BASE_DISK) $(DISK)
 	$(U2A) setdate.bas | $(AC) -p $(DISK) setdate.t TXT
 	$(U2A) dateentryform.bas | $(AC) -p $(DISK) dateentryform.t TXT
 	$(U2A) setdate.orig.bas | $(AC) -p $(DISK) setdate.orig.t TXT
@@ -51,8 +52,8 @@ setdatevalues.bas: setdatevalues.baz
 	$(VIRTBAS) setdatevalues.baz remgo
 
 test: $(DISK)
-	$(APPLEWIN) -d1 $(DISK)
-	#$(APPLEWIN) -s7 empty -d1 $(DISK)
+	$(APPLEWIN) -s7 empty -d1 $(DISK)
+	#$(APPLEWIN) -d1 $(DISK)
 
 clean:
 	$(RM) *.o setdate.bas dateentryform.bas setdatevalues.bas $(DISK)

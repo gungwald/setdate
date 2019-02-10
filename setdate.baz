@@ -41,10 +41,8 @@ section init
 closesection
 
 section main
-    text
     gosub @getSystemDate
     gosub @formatDateAndTime
-    gosub @displayHelp
     gosub @drawScreen
     gosub @enterDateAndTime
 
@@ -61,8 +59,8 @@ section main
 closesection
 
 £drawScreen
-    print "Date: ";day$;"-";mnth$;"-";year$;     "  (DD-MMM-YY)"
-    print "Time: ";hour$;":";minute$;" ";ampm$;"m"
+    print "Date: ";day$;"-";mnth$;"-";year$;     "  (DAY-MONTH-YEAR)"
+    print "Time: ";hour$;":";minute$;" ";ampm$;"m   (Type ? for help)"
     let tx = 7 : rem Time horizontal position
     let dx = 7 : rem Date horizontal position
     call -998 : rem Move cursor up 1 line to time line
@@ -75,7 +73,7 @@ closesection
     #vtab ty : poke 36,38 : print
     HOME
     PRINT
-    PRINT "**************** HELP *****************"
+    PRINT "---------------- HELP -----------------"
     PRINT "RETURN - SET DATA & TIME"
     PRINT "ESC    - EXIT WITHOUT MAKING CHANGES"
     PRINT "TAB    - SKIP TO NEXT ELEMENT"
@@ -84,14 +82,16 @@ closesection
     PRINT "DELETE - MOVE BACK ONE CHARACTER"
     PRINT "+      - INCREMENT CURRENT VALUE"
     PRINT "-      - DECREMENT CURRENT VALUE"
-    PRINT "***************************************"
+    PRINT "---------------------------------------"
     PRINT
     GOSUB @drawScreen
     RETURN
 
-£formatMonth
+£formatMonth {mnth}
     let mnth$ = mnths$(mnth)
-    return
+    { Default to January if mnth is 0 and mnth$ is empty. }
+    if mnth$ = "" then let mnth$ = "JAN" : let mnth = 1
+    return {mnth$}
 
 £formatDateAndTime
     let year$ = str$(year)
@@ -109,9 +109,9 @@ closesection
     if len(minute$) = 1 then let minute$ = "0" + minute$
     return
 
-£decodeMonth
+£decodeMonth {mnth$}
     for i = 1 to 12
-        if mnths$(i) = mnth$ then mnth = i : return
+        if mnths$(i) = mnth$ then mnth = i : return {mnth}
     next
     vtab 24
     print
@@ -133,30 +133,30 @@ closesection
     LET YEAR = INT (DH / 2)
     LET MNTH = ((DH/2 - INT(DH/2)) > 0) * 2 ^ 3 +  INT (DL / 32)
     LET DAY = DL
-    IF DAY >= 128 THEN DAY = DAY - 128
-    IF DAY >= 64  THEN DAY = DAY - 64
-    IF DAY >= 32  THEN DAY = DAY - 32
-    IF TH = 0  THEN HOUR = 12      : AMPM$ = "A"
-    IF TH = 12 THEN HOUR = 12      : AMPM$ = "P"
-    IF TH > 12 THEN HOUR = TH - 12 : AMPM$ = "P"
-    IF TH < 12 THEN HOUR = TH      : AMPM$ = "A"
+    IF DAY >= 128 THEN LET DAY = DAY - 128
+    IF DAY >= 64  THEN LET DAY = DAY - 64
+    IF DAY >= 32  THEN LET DAY = DAY - 32
+    IF TH = 0  THEN            LET HOUR = 12      : LET AMPM$ = "A"
+    IF TH = 12 THEN            LET HOUR = 12      : LET AMPM$ = "P"
+    IF TH > 12 THEN            LET HOUR = TH - 12 : LET AMPM$ = "P"
+    IF 0 < TH AND TH < 12 THEN LET HOUR = TH      : LET AMPM$ = "A"
     LET MINUTE = TL
     RETURN 
 
 £setSystemDateAndTime
     { Convert to 2-digit year without modifying YEAR }
-    IF YEAR >= 100 THEN Y2 = VAL(RIGHT$(STR$(YEAR),2))
-    IF YEAR <  100 THEN Y2 = YEAR
+    IF YEAR >= 100 THEN LET Y2 = VAL(RIGHT$(STR$(YEAR),2))
+    IF YEAR <  100 THEN LET Y2 = YEAR
 
     { Set DH and DL }
     LET DH = Y2 * 2 + (MNTH >  = 8)
     LET DL = MNTH * 32 - 128 * (MNTH >  = 8) + DAY
 
     { Set TH and TL }
-    IF HOUR =  12 AND AMPM$ = "A" THEN TH = 0
-    IF HOUR =  12 AND AMPM$ = "P" THEN TH = 12
-    IF HOUR <> 12 AND AMPM$ = "P" THEN TH = HOUR + 12
-    IF HOUR <> 12 AND AMPM$ = "A" THEN TH = HOUR
+    IF HOUR =  12 AND AMPM$ = "A" THEN LET TH = 0
+    IF HOUR =  12 AND AMPM$ = "P" THEN LET TH = 12
+    IF HOUR <> 12 AND AMPM$ = "P" THEN LET TH = HOUR + 12
+    IF HOUR <> 12 AND AMPM$ = "A" THEN LET TH = HOUR
     LET TL = MINUTE
 
     { Put date/time into memory }
@@ -170,11 +170,19 @@ closesection
     print beep$
     return
 
+£toUpperCase {k$}
+    { k$ must be compared by ASCII code rather than character strings }
+    { because VirtualBasic will convert all strings to upper case when }
+    { it generates the BASIC code. So, "a" and "z" won't work.}
+    let ac{asciiCodeOfK$} = asc(k$)
+    if 141{lowerCaseA} <= ac and ac <= 172{lowerCaseZ} then let k$ = chr$(ac - 76)
+    return {k$}
+
 £enterDateAndTime
 
 £dayDigitOne
     htab dx : vtab dy
-    get k$
+    get k$ : gosub @toUpperCase
     if "0" <= k$ and k$ <= "3" then print k$; : day$ = k$ + right$(day$, 1) : goto @dayDigitTwo
     if k$ = " "             then goto @dayDigitTwo
     if k$ = tb${tab}        then goto @monthCharOne
@@ -186,13 +194,14 @@ closesection
     if k$ = dlt${deleteKey} then goto @meridiem
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @dayDigitOne
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @dayDigitOne
 
 £dayDigitTwo
     htab dx+1 : vtab dy
-    get k$
+    get k$ : gosub @toUpperCase
     if k$ < "0" or "9" < k$ then goto @dayDigitTwoKeys
     let first$ = left$(day$, 1)
     let test$ = first$ + k$
@@ -209,13 +218,14 @@ closesection
     if k$ = dlt${deleteKey} then goto @dayDigitOne
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @dayDigitTwo
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @dayDigitTwo
 
 £monthCharOne
     htab dx+3 : vtab dy
-    get k$
+    get k$ : gosub @toUpperCase
     if k$ = left$(mnth$, 1) then goto @monthCharTwo
     if k$ = "J" then mnth$ = "JAN" : mnth=1  : print mnth$; : goto @monthCharTwo
     if k$ = "F" then mnth$ = "FEB" : mnth=2  : print mnth$; : goto @monthCharTwo
@@ -225,23 +235,24 @@ closesection
     if k$ = "O" then mnth$ = "OCT" : mnth=10 : print mnth$; : goto @monthCharTwo
     if k$ = "N" then mnth$ = "NOV" : mnth=11 : print mnth$; : goto @monthCharTwo
     if k$ = "D" then mnth$ = "DEC" : mnth=12 : print mnth$; : goto @monthCharTwo
-    if k$ = " "             then goto @monthCharTwo
+    if k$ = " " then goto @monthCharTwo
     if k$ = tb${tab}        then goto @yearDigitOne
     if k$ = rt${rightArrow} then goto @monthCharTwo
     if k$ = lt${leftArrow}  then goto @dayDigitTwo
     if k$ = down${downArro} then gosub @minuteDigitOne
-    if k$ = "+"             then gosub @incMonth : print mnth$; : goto @monthCharOne
-    if k$ = "-"             then gosub @decMonth : print mnth$; : goto @monthCharOne
+    if k$ = "+" then gosub @incMonth : print mnth$; : goto @monthCharOne
+    if k$ = "-" then gosub @decMonth : print mnth$; : goto @monthCharOne
     if k$ = dlt${deleteKey} then goto @dayDigitTwo
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @monthCharOne
+    if k$ = "Q" then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @monthCharOne
 
 £monthCharTwo
     htab dx+4 : vtab dy
-    get k$
+    get k$ : gosub @toUpperCase
     if k$ = mid$(mnth$, 2, 1) then goto @monthCharThree
     let first$ = left$(mnth$, 1)
     if first$ = "J" and k$ = "A" then mnth$ = "JAN" : mnth=1 : print "AN"; : goto @monthCharThree
@@ -259,16 +270,16 @@ closesection
     if k$ = dlt${deleteKey} then goto @monthCharOne
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @monthCharTwo
-    { Input key is invalid if we get here. }
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @monthCharTwo
 
 £monthCharThree
     htab dx+5 : vtab dy
+    get k$ : gosub @toUpperCase
     if k$ = right$(mnth$, 1) then goto @yearDigitOne
     let two$ = left$(mnth$, 2)
-    get k$
     if two$ = "MA" and k$ = "R" then mnth$ = "MAR" : mnth=3 : print k$; : goto @yearDigitOne
     if two$ = "MA" and k$ = "Y" then mnth$ = "MAY" : mnth=5 : print k$; : goto @yearDigitOne
     if two$ = "JU" and k$ = "N" then mnth$ = "JUN" : mnth=6 : print k$; : goto @yearDigitOne
@@ -283,13 +294,14 @@ closesection
     if k$ = dlt${deleteKey} then goto @monthCharTwo
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @monthCharThree
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @monthCharThree
 
 £yearDigitOne
     htab dx+7 : vtab dy
-    get k$
+    get k$ : gosub @toUpperCase
     if "0" <= k$ and k$ <= "9" then print k$; : year$ = k$ + right$(year$, 1) : goto @yearDigitTwo
     if k$ = " "             then goto @yearDigitTwo
     if k$ = tb${tab}        then goto @hourDigitOne
@@ -301,13 +313,14 @@ closesection
     if k$ = dlt${deleteKey} then goto @monthCharThree
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @yearDigitOne
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @yearDigitOne
 
 £yearDigitTwo
     htab dx+8 : vtab dy
-    get k$
+    get k$ : gosub @toUpperCase
     if k$ < "0" or "9" < k$ then goto @yearDigitTwoKeys
     let first$ = left$(year$, 1)
     let test$ = first$ + k$
@@ -324,13 +337,14 @@ closesection
     if k$ = dlt${deleteKey} then goto @yearDigitOne
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @yearDigitTwo
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @yearDigitTwo
 
 £hourDigitOne
     htab tx : vtab ty
-    get k$
+    get k$ : gosub @toUpperCase
     if "0" <= k$ and k$ <= "1" then print k$; : hour$ = k$ + right$(hour$, 1) : goto @hourDigitTwo
     if k$ = " "             then goto @hourDigitTwo
     if k$ = tb${tab}        then goto @minuteDigitOne
@@ -342,13 +356,14 @@ closesection
     if k$ = dlt${deleteKey} then goto @yearDigitTwo
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @hourDigitOne
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @hourDigitOne
 
 £hourDigitTwo
     htab tx+1 : vtab ty
-    get k$
+    get k$ : gosub @toUpperCase
     if k$ < "0" or "9" < k$ then goto @hourDigitTwoKeys
     let first$ = left$(hour$, 1)
     let test$ = first$ + k$
@@ -365,13 +380,14 @@ closesection
     if k$ = dlt${deleteKey} then goto @hourDigitOne
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @hourDigitTwo
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @hourDigitTwo
 
 £minuteDigitOne
     htab tx+3 : vtab ty
-    get k$
+    get k$ : gosub @toUpperCase
     if "0" <= k$ and k$ <= "5" then print k$; : minute$ = k$ + right$(minute$, 1) : goto @minuteDigitTwo
     if k$ = " "             then goto @minuteDigitTwo
     if k$ = tb${tab}        then goto @meridiem
@@ -383,13 +399,14 @@ closesection
     if k$ = dlt${deleteKey} then goto @hourDigitTwo
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @minuteDigitOne
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @minuteDigitOne
 
 £minuteDigitTwo
     htab tx+4 : vtab ty
-    get k$
+    get k$ : gosub @toUpperCase
     if k$ < "0" or "9" < k$ then goto @minuteDigitTwoKeys
     let first$ = left$(minute$, 1)
     let test$ = first$ + k$
@@ -406,13 +423,14 @@ closesection
     if k$ = dlt${deleteKey} then goto @minuteDigitOne
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @minuteDigitTwo
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @minuteDigitTwo
 
 £meridiem
     htab tx+6 : vtab ty
-    get k$
+    get k$ : gosub @toUpperCase
     if k$ = "A" or k$ = "P" then print k$; : ampm$ = k$ : goto @dayDigitOne
     if k$ = " "             then goto @dayDigitOne
     if k$ = tb${tab}        then goto @dayDigitOne
@@ -424,7 +442,8 @@ closesection
     if k$ = dlt${deleteKey} then goto @minuteDigitTwo
     if k$ = esc${escapeKey} then return
     if k$ = ret${returnKey} then return
-    if k$ = "/" or k$ = "?" then gosub @displayHelp : goto @meridiem
+    if k$ = "Q"             then return
+    if k$ = "/" or k$ = "?" or k$ = "H" then gosub @displayHelp : goto @dayDigitOne
     gosub @soundError
     goto @meridiem
 
