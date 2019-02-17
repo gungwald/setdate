@@ -12,6 +12,7 @@ To install the [driver](https://bit.ly/2V4fNi3) you need to arrange the files on
 
 # SETDATE
 This program allows you to edit the date/time known by PRODOS. It has a fixed field for each element of the date and time. You can tab from one element to the next. Hit Return when your done to update the date and time. It is efficient because you don't have to retype any element that is already correct. You don't have to type Return after each element. It advances automatically to the next element.
+
 ![Setdate Screenshot](pitchers/setdate.png)
 
 # DATEENTRYFORM
