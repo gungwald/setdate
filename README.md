@@ -11,12 +11,15 @@ To install the [driver](https://bit.ly/2V4fNi3) you need to arrange the files on
 3. BASIC.SYSTEM - or other SYSTEM program that you want to run
 
 # SETDATE
+This program allows you to edit the date/time known by PRODOS. It has a fixed field for each element of the date and time. You can tab from one element to the next. Hit Return when your done to update the date and time.
 ![Setdate Screenshot](pitchers/setdate.png)
 
 # DATEENTRYFORM
+This program works like the above SETDATE program but it is a full screen form.
 ![DateEntryForm Screenshot](pitchers/dateentryform.png)
 
 # SETDATEVALUES
+This program allows you to set the date and time by responding to a prompt containing the current value of each individual element. You can just type Return to keep the default value.
 ![SetDateValues Screenshot](pitchers/setdatevalues.png)
 
 # Download Disk Image
