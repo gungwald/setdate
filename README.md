@@ -1,19 +1,32 @@
-# setdate
-This program allows you to conveniently and efficiently set the date and time on an Apple II running ProDOS. Ideally, you should avoid having to do this altogether by installing a hardware real-time clock (RTC) along with the proper driver to allow ProDOS to access it. But, if you don't yet have a RTC, this program is for you.
 
+This project contains 3 different types of programs that allow you to set the date and time on an Apple II running ProDOS. 
+
+# How to Avoid Using This
+Ideally, you should avoid having to set the date manually by installing a hardware real-time clock (RTC) along with the proper driver to allow ProDOS to access it. The NO SLOT CLOCK is the easiest RTC to get today. The name means that it does not require an expansion slot. AppleWin emulates the NO SLOT CLOCK by default. You just have to install the [driver](ftp://ftp.apple.asimov.net/pub/apple_II/images/hardware/clock/NSC_UTILITIES_V14.dsk) to make it work. For real hardware you can buy a [NO SLOT CLOCK](https://www.reactivemicro.com/product/no-slot-clock-from-manila-gear/).
+
+To install the [driver](ftp://ftp.apple.asimov.net/pub/apple_II/images/hardware/clock/NSC_UTILITIES_V14.dsk) you need to arrange the files on your boot disk in this order:
+* PRODOS
+* NS.CLOCK.SYSTEM (from the driver [disk](ftp://ftp.apple.asimov.net/pub/apple_II/images/hardware/clock/NSC_UTILITIES_V14.dsk))
+* BASIC.SYSTEM (or other SYSTEM program that you want to run)
+
+# setdate
 ![Setdate Screenshot](pitchers/setdate.png)
 
-# Etymology (which is different from [Entomology](https://en.wikipedia.org/wiki/Entomology))
-It is named after the ProDOS [ON_LINE](http://www.easy68k.com/paulrsm/6502/PDOS8TRM.HTM#4.4.6) system call that is used to retrieve volume information.
+# dateentryform
+![DateEntryForm Screenshot](pitchers/dateentryform.png)
 
-# Download Binary Executable
-See the [releases](https://github.com/gungwald/online/releases) page for a disk image with a binary version that's ready to run.
+# setdatevalues
+![SetDateValues Screenshot](pitchers/setdatevalues.png)
+
+# Download Disk Image
+See the [releases](https://github.com/gungwald/setdate/releases) page for a disk image with copies that are ready to run.
 
 # Build from Source
 #### Requirements
 * Windows, Mac, or [Linux](http://getfedora.org) - all the build tools are supported on all 3 platforms
 * GNU make - to interpret the Makefile and run the build
-* [Merlin32](https://www.brutaldeluxe.fr/products/crossdevtools/merlin/) - to assemble the source code
+* VirtualBasic from Bitbucket: https://bitbucket.org/andresloz/virtualbasic. You need to pull the 2018-09-25 version using Mercurial. The current "released" version on virtualbasic.org does not have the ability to be used in a make file.
+* Python to run VirtualBasic.
 * [Javer](http://www.java.com) - to run AppleCommander which builds a disk image
 #### Process
 Type "make".
