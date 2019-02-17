@@ -14,7 +14,9 @@ endif
 PGM=setdate
 DISK_VOL=$(PGM)
 DISK=$(PGM).dsk
-AC=java -jar AppleCommander-ac-1.4.0.jar
+# It is necessary to use this older version of AppleCommander to support
+# the PowerBook G4 and iBook G3. This version only requires Java 1.3.
+AC=java -jar AppleCommander-1.3.5-ac.jar
 U2A=java -cp . Unix2Apple2
 VIRTBAS=python $(HOME)/hg/virtualbasic/virtualbasic.py
 PGMS=setdate.bas dateentryform.bas setdate.orig.bas setdatevalues.bas
@@ -56,5 +58,5 @@ test: $(DISK)
 	#$(APPLEWIN) -d1 $(DISK)
 
 clean:
-	$(RM) *.o setdate.bas dateentryform.bas setdatevalues.bas $(DISK)
+	$(RM) *.o setdate.bas dateentryform.bas setdatevalues.bas $(DISK) Unix2Apple2.class
 
