@@ -32,6 +32,6 @@ See the [releases](https://github.com/gungwald/setdate/releases) page for a disk
 * GNU make - To interpret the Makefile and run the build. For Windows try installing it from [here](http://gnuwin32.sourceforge.net/packages/make.htm).
 * [VirtualBasic](https://bitbucket.org/andresloz/virtualbasic) - You need to pull the 2018-09-25 version from Bitbucket using [Mercurial](https://www.mercurial-scm.org/). The [current](http://www.virtualbasic.org) "released" version does not have the ability to be used in a make file.
 * [Python](https://www.python.org/) - To run VirtualBasic.
-* [Javer](http://www.java.com) - To run AppleCommander which builds a disk image
+* [Javer](https://www.oracle.com/technetwork/java/javase/downloads/index.html) - The JDK is needed to compile Unix2Apple.java and to run AppleCommander which builds a disk image
 #### Build Process
 Type "make" from the setdate directory.
