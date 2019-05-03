@@ -40,6 +40,7 @@ $(DISK): $(PGMS) Unix2Apple2.class
 	$(U2A) dateentryform.bas | $(AC) -p $(DISK) dateentryform.t TXT
 	$(U2A) setdate.orig.bas | $(AC) -p $(DISK) setdate.orig.t TXT
 	$(U2A) setdatevalues.bas | $(AC) -p $(DISK) setdatevalues.t TXT
+	$(U2A) clock.bas | $(AC) -p $(DISK) clock.t TXT
 
 Unix2Apple2.class: Unix2Apple2.java
 	javac Unix2Apple2.java
